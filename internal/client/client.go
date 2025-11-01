@@ -14,7 +14,7 @@ type Client struct {
 	Username string
 	Room     string
 	conn     *websocket.Conn
-	send     chan *message.Message
+	Send     chan *message.Message
 	// mu       sync.Mutex
 }
 
@@ -24,7 +24,7 @@ func NewClient(id, username, room string, conn *websocket.Conn) *Client {
 		Username: username,
 		Room:     room,
 		conn:     conn,
-		send:     make(chan *message.Message, 256),
+		Send:     make(chan *message.Message, 256),
 	}
 }
 
@@ -37,7 +37,7 @@ func (c *Client) WritePump(ctx context.Context) {
 
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.Send:
 			c.conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})
@@ -51,10 +51,10 @@ func (c *Client) WritePump(ctx context.Context) {
 			w.Write(message.ToJSON())
 
 			// Add queued messages to the current websocket message
-			n := len(c.send)
+			n := len(c.Send)
 			for i := 0; i < n; i++ {
 				w.Write([]byte("\n"))
-				w.Write((<-c.send).ToJSON())
+				w.Write((<-c.Send).ToJSON())
 			}
 
 			if err := w.Close(); err != nil {
@@ -113,10 +113,10 @@ func (c *Client) ReadPump(ctx context.Context, broadcast chan<- *message.Message
 	}
 }
 
-func (c *Client) Send(msg *message.Message) {
+func (c *Client) SendMessage(msg *message.Message) {
 	select {
-	case c.send <- msg:
+	case c.Send <- msg:
 	default:
-		close(c.send)
+		close(c.Send)
 	}
 }

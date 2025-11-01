@@ -17,13 +17,13 @@ type Hub struct {
 	rooms map[string]map[*client.Client]bool
 
 	// Inbound messages from clients
-	broadcast chan *message.Message
+	Broadcast chan *message.Message
 
 	// Register requests
-	register chan *client.Client
+	Register chan *client.Client
 
 	// Unregister requests
-	unregister chan *client.Client
+	Unregister chan *client.Client
 
 	// Context for graceful shutdown
 	ctx    context.Context
@@ -34,9 +34,9 @@ func NewHub() *Hub {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Hub{
 		rooms:      make(map[string]map[*client.Client]bool),
-		broadcast:  make(chan *message.Message),
-		register:   make(chan *client.Client),
-		unregister: make(chan *client.Client),
+		Broadcast:  make(chan *message.Message),
+		Register:   make(chan *client.Client),
+		Unregister: make(chan *client.Client),
 		ctx:        ctx,
 		cancel:     cancel,
 	}
@@ -47,7 +47,7 @@ func (h *Hub) Run() {
 
 	for {
 		select {
-		case client := <-h.register:
+		case client := <-h.Register:
 			h.mu.Lock()
 			if h.rooms[client.Room] == nil {
 				h.rooms[client.Room] = make(map[*client.Client]bool)
@@ -67,7 +67,7 @@ func (h *Hub) Run() {
 
 			log.Printf("Client %s joined room %s", client.Username, client.Room)
 
-		case client := <-h.unregister:
+		case client := <-h.Unregister:
 			h.mu.Lock()
 			if room, ok := h.rooms[client.Room]; ok {
 				if _, ok := room[client]; ok {
@@ -83,7 +83,7 @@ func (h *Hub) Run() {
 						Room:      client.Room,
 					}
 					go func() {
-						h.broadcast <- leaveMsg
+						h.Broadcast <- leaveMsg
 					}()
 
 					// Clean up empty rooms
@@ -94,7 +94,7 @@ func (h *Hub) Run() {
 			}
 			h.mu.Unlock()
 
-		case message := <-h.broadcast:
+		case message := <-h.Broadcast:
 			h.broadcastMessage(message)
 
 		case <-h.ctx.Done():

@@ -43,7 +43,7 @@ func main() {
 	})
 
 	// Serve frontend
-	mux.Handle("/", http.FileServer(http.Dir("./frontend")))
+	mux.Handle("/", http.FileServer(http.Dir("./web")))
 
 	// CORS configuration
 	corsHandler := cors.New(cors.Options{

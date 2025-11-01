@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dipendra-mule/chat-app/internal/client" // client package
@@ -64,5 +65,5 @@ func (h *Handler) ServeWebSocket(w http.ResponseWriter, r *http.Request) {
 }
 
 func generateID() string {
-	return string(time.Now().UnixNano())
+	return strconv.FormatInt(time.Now().UnixNano(), 10)
 }
