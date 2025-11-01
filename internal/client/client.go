@@ -3,11 +3,9 @@ package client
 import (
 	"context"
 	"log"
-	"sync"
 	"time"
 
-	"github.com/dipendra-mule/chat-app/internal/message" // message package
-
+	"github.com/dipendra-mule/chat-app/internal/message"
 	"github.com/gorilla/websocket"
 )
 
@@ -17,7 +15,7 @@ type Client struct {
 	Room     string
 	conn     *websocket.Conn
 	send     chan *message.Message
-	mu       sync.Mutex
+	// mu       sync.Mutex
 }
 
 func NewClient(id, username, room string, conn *websocket.Conn) *Client {

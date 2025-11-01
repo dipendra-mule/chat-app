@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Go Chat App</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Go Real-Time Chat</h1>
+        <div class="connection-status">
+          <span id="status">Disconnected</span>
+        </div>
+      </header>
+
+      <div class="login-form" id="loginForm">
+        <h2>Join Chat Room</h2>
+        <input type="text" id="usernameInput" placeholder="Enter your username" maxlength="20" />
+        <input type="text" id="roomInput" placeholder="Enter room name" value="general" maxlength="20" />
+        <button onclick="connect()">Join Chat</button>
+      </div>
+
+      <div class="chat-container" id="chatContainer" style="display: none;">
+        <div class="sidebar">
+          <h3>Room: <span id="currentRoom"></span></h3>
+          <div class="online-users">
+            <h4>Online Users</h4>
+            <ul id="usersList"></ul>
+          </div>
+          <div class="room-stats">
+            <h4>Room Statistics</h4>
+            <div id="roomStats"></div>
+          </div>
+        </div>
+
+        <div class="chat-area">
+          <div class="messages" id="messages"></div>
+
+          <div class="input-area">
+            <div class="typing-indicator" id="typingIndicator"></div>
+            <div class="input-group">
+              <input type="text" id="messageInput" placeholder="Type your message..." maxlength="500" />
+              <button onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

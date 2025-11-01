@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dipendra-mule/chat-app/internal/client"  // client package
-	"github.com/dipendra-mule/chat-app/internal/message" // message package
+	"github.com/dipendra-mule/chat-app/internal/client"
+	"github.com/dipendra-mule/chat-app/internal/message"
 )
 
 type Hub struct {
