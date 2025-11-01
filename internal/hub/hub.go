@@ -6,26 +6,26 @@ import (
 	"sync"
 	"time"
 
-	"github.com/dipendra-mule/chat-app/internal/client"
-	"github.com/dipendra-mule/chat-app/internal/message"
+	"github.com/dipendra-mule/chat-app/internal/client"  // client package
+	"github.com/dipendra-mule/chat-app/internal/message" // message package
 )
 
 type Hub struct {
 	mu sync.RWMutex
 
-	// Registered cleints by room
+	// Registered clients by room
 	rooms map[string]map[*client.Client]bool
 
 	// Inbound messages from clients
 	broadcast chan *message.Message
 
-	// register req
+	// Register requests
 	register chan *client.Client
 
-	// unregister req
+	// Unregister requests
 	unregister chan *client.Client
 
-	// context for graceful shutdown
+	// Context for graceful shutdown
 	ctx    context.Context
 	cancel context.CancelFunc
 }
@@ -43,7 +43,7 @@ func NewHub() *Hub {
 }
 
 func (h *Hub) Run() {
-	log.Println("chat hub started")
+	log.Println("Chat hub started")
 
 	for {
 		select {
@@ -55,8 +55,7 @@ func (h *Hub) Run() {
 			h.rooms[client.Room][client] = true
 			h.mu.Unlock()
 
-			// notifyt room about user
-
+			// Notify room about new user
 			joinMsg := &message.Message{
 				Type:      message.MessageTypeJoin,
 				Username:  client.Username,
@@ -65,7 +64,9 @@ func (h *Hub) Run() {
 				Room:      client.Room,
 			}
 			h.broadcastMessage(joinMsg)
-			log.Printf("Client %s joined the room %s", client.Username, client.Room)
+
+			log.Printf("Client %s joined room %s", client.Username, client.Room)
+
 		case client := <-h.unregister:
 			h.mu.Lock()
 			if room, ok := h.rooms[client.Room]; ok {
@@ -84,28 +85,60 @@ func (h *Hub) Run() {
 					go func() {
 						h.broadcast <- leaveMsg
 					}()
-					// clean up empty room
+
+					// Clean up empty rooms
 					if len(room) == 0 {
 						delete(h.rooms, client.Room)
 					}
 				}
 			}
 			h.mu.Unlock()
+
 		case message := <-h.broadcast:
 			h.broadcastMessage(message)
 
 		case <-h.ctx.Done():
 			h.mu.Lock()
-			// close all client connections
+			// Close all client connections
 			for _, room := range h.rooms {
 				for client := range room {
 					close(client.Send)
 				}
 			}
 			h.mu.Unlock()
-			log.Println("chat hub stopped")
+			log.Println("Chat hub stopped")
 			return
 		}
-
 	}
+}
+
+func (h *Hub) broadcastMessage(msg *message.Message) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	if room, ok := h.rooms[msg.Room]; ok {
+		for client := range room {
+			select {
+			case client.Send <- msg:
+			default:
+				close(client.Send)
+				delete(room, client)
+			}
+		}
+	}
+}
+
+func (h *Hub) GetRoomStats() map[string]int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+
+	stats := make(map[string]int)
+	for room, clients := range h.rooms {
+		stats[room] = len(clients)
+	}
+	return stats
+}
+
+func (h *Hub) Stop() {
+	h.cancel()
 }
