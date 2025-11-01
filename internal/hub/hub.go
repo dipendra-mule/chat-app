@@ -47,40 +47,40 @@ func (h *Hub) Run() {
 
 	for {
 		select {
-		case client := <-h.Register:
+		case c := <-h.Register:
 			h.mu.Lock()
-			if h.rooms[client.Room] == nil {
-				h.rooms[client.Room] = make(map[*client.Client]bool)
+			if h.rooms[c.Room] == nil {
+				h.rooms[c.Room] = make(map[*client.Client]bool)
 			}
-			h.rooms[client.Room][client] = true
+			h.rooms[c.Room][c] = true
 			h.mu.Unlock()
 
 			// Notify room about new user
 			joinMsg := &message.Message{
 				Type:      message.MessageTypeJoin,
-				Username:  client.Username,
+				Username:  c.Username,
 				Content:   "joined the room",
 				Timestamp: time.Now(),
-				Room:      client.Room,
+				Room:      c.Room,
 			}
 			h.broadcastMessage(joinMsg)
 
-			log.Printf("Client %s joined room %s", client.Username, client.Room)
+			log.Printf("Client %s joined room %s", c.Username, c.Room)
 
-		case client := <-h.Unregister:
+		case c := <-h.Unregister:
 			h.mu.Lock()
-			if room, ok := h.rooms[client.Room]; ok {
-				if _, ok := room[client]; ok {
-					delete(room, client)
-					close(client.Send)
+			if room, ok := h.rooms[c.Room]; ok {
+				if _, ok := room[c]; ok {
+					delete(room, c)
+					close(c.Send)
 
 					// Notify room about user leaving
 					leaveMsg := &message.Message{
 						Type:      message.MessageTypeLeave,
-						Username:  client.Username,
+						Username:  c.Username,
 						Content:   "left the room",
 						Timestamp: time.Now(),
-						Room:      client.Room,
+						Room:      c.Room,
 					}
 					go func() {
 						h.Broadcast <- leaveMsg
@@ -88,7 +88,7 @@ func (h *Hub) Run() {
 
 					// Clean up empty rooms
 					if len(room) == 0 {
-						delete(h.rooms, client.Room)
+						delete(h.rooms, c.Room)
 					}
 				}
 			}
@@ -101,8 +101,8 @@ func (h *Hub) Run() {
 			h.mu.Lock()
 			// Close all client connections
 			for _, room := range h.rooms {
-				for client := range room {
-					close(client.Send)
+				for c := range room {
+					close(c.Send)
 				}
 			}
 			h.mu.Unlock()
