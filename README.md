@@ -83,6 +83,8 @@ go run ./cmd/main.go
 
 The server will start on `http://localhost:8080`
 
+<img width="881" height="642" alt="Screenshot 2025-11-02 000047" src="https://github.com/user-attachments/assets/837504be-ae01-4844-865e-d4a2bfa413a7" />
+
 ## Usage
 
 1. Open your browser and navigate to `http://localhost:8080`
@@ -172,10 +174,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is open source and available under the MIT License.
+<img width="933" height="386" alt="image" src="https://github.com/user-attachments/assets/c321d0e6-399a-4a3f-8005-1d207db5ef3b" />
 
-## Author
-
-dipendra-mule
 
 ---
 
